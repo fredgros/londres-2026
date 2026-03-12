@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Londres 2026">
+    <meta name="theme-color" content="#6749FF">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='30' fill='%236749FF'/><text x='90' y='125' font-size='90' text-anchor='middle' fill='white'>L</text></svg>">
+    <title>Londres Avril 2026</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --violet: #6749FF;
+            --violet-light: #EDE9FF;
+            --violet-mid: #D5CCFF;
+            --red: #C41D3E;
+            --red-dark: #A3162F;
+            --orange: #E8590C;
+            --green: #0B7A5F;
+            --green-dark: #065040;
+            --black: #1A1A1A;
+            --gray: #666;
+            --gray-light: #f5f5f5;
+            --radius: 12px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, 'Segoe UI', BlinkMacSystemFont, sans-serif;
+            -webkit-text-size-adjust: 100%;
+            background: #f8f7ff;
+            overflow: hidden;
+            height: 100vh; height: 100dvh;
+        }
+
+        /* ===== NAV TABS ===== */
+        .nav-tabs {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            display: flex; background: white;
+            border-top: 1px solid #e0e0e0;
+            z-index: 2000;
+            padding-bottom: var(--safe-bottom);
+        }
+        .nav-tab {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            padding: 8px 0 6px; cursor: pointer; border: none; background: none;
+            color: var(--gray); font-size: 10px; font-weight: 600;
+            -webkit-tap-highlight-color: transparent; transition: color 0.2s;
+        }
+        .nav-tab.active { color: var(--violet); }
+        .nav-tab svg { width: 24px; height: 24px; margin-bottom: 2px; }
+
+        /* ===== VIEWS ===== */
+        .view { display: none; height: calc(100dvh - 60px - var(--safe-bottom)); overflow: hidden; }
+        .view.active { display: flex; flex-direction: column; }
+
+        /* ===== PLANNING VIEW ===== */
+        #view-planning { background: #f8f7ff; }
+
+        .planning-header {
+            background: var(--violet); color: white;
+            padding: 16px 16px 12px; flex-shrink: 0;
+        }
+        .planning-header h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+        .planning-header p { font-size: 12px; opacity: 0.8; }
+
+        .day-tabs {
+            display: flex; overflow-x: auto; padding: 0 12px;
+            background: white; border-bottom: 1px solid #eee;
+            flex-shrink: 0; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .day-tabs::-webkit-scrollbar { display: none; }
+        .day-tab {
+            flex-shrink: 0; padding: 12px 16px; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: var(--gray);
+            border-bottom: 3px solid transparent; white-space: nowrap;
+            -webkit-tap-highlight-color: transparent; transition: all 0.2s;
+            background: none; border-top: none; border-left: none; border-right: none;
+        }
+        .day-tab.active { color: var(--violet); border-bottom-color: var(--violet); }
+        .day-tab.excursion { font-style: italic; }
+
+        .day-content {
+            flex: 1; overflow-y: auto; padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .day-info {
+            background: white; border-radius: var(--radius);
+            padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .day-info h2 { font-size: 18px; color: var(--black); margin-bottom: 4px; }
+        .day-info .day-date { font-size: 13px; color: var(--gray); margin-bottom: 8px; }
+        .day-info .day-badge {
+            display: inline-block; font-size: 11px; padding: 3px 10px;
+            border-radius: 20px; font-weight: 600;
+        }
+        .day-badge.london { background: var(--violet-light); color: var(--violet); }
+        .day-badge.cambridge { background: #E3F2FD; color: #1565C0; }
+        .day-badge.oxford { background: #FFF3E0; color: #E65100; }
+        .day-badge.depart { background: #f0f0f0; color: #666; }
+
+        .activity-card {
+            background: white; border-radius: var(--radius);
+            padding: 14px 16px; margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            border-left: 4px solid var(--violet-mid);
+            display: flex; align-items: flex-start; gap: 12px;
+        }
+        .activity-card.meal { border-left-color: var(--red); }
+        .activity-card.transport { border-left-color: var(--black); }
+        .activity-card.excursion-act { border-left-color: #1565C0; }
+
+        .activity-time {
+            font-size: 12px; font-weight: 700; color: var(--violet);
+            min-width: 44px; flex-shrink: 0; padding-top: 1px;
+        }
+        .activity-card.meal .activity-time { color: var(--red); }
+        .activity-card.transport .activity-time { color: var(--black); }
+
+        .activity-body { flex: 1; min-width: 0; }
+        .activity-name { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 2px; }
+        .activity-detail { font-size: 12px; color: var(--gray); line-height: 1.4; }
+        .activity-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .activity-tag {
+            font-size: 10px; padding: 2px 8px; border-radius: 10px;
+            font-weight: 500;
+        }
+        .atag-visit { background: var(--violet-light); color: var(--violet); }
+        .atag-food { background: #FFEAE0; color: var(--red); }
+        .atag-transport { background: #f0f0f0; color: var(--black); }
+        .atag-tip { background: #E0F5EE; color: var(--green); }
+
+        .section-title {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--gray); margin: 16px 0 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        .nearby-restos {
+            background: white; border-radius: var(--radius);
+            padding: 14px 16px; margin-top: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .nearby-restos h3 {
+            font-size: 13px; color: var(--red); margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .resto-item {
+            display: flex; align-items: center; padding: 6px 0;
+            border-bottom: 1px solid #f5f5f5; font-size: 13px;
+        }
+        .resto-item:last-child { border-bottom: none; }
+        .resto-dist {
+            font-size: 11px; font-weight: 700; min-width: 40px;
+            flex-shrink: 0;
+        }
+        .resto-dist.sk { color: var(--green); }
+        .resto-dist.c { color: var(--red); }
+        .resto-name { font-weight: 600; color: var(--black); }
+        .resto-cuisine { color: var(--gray); font-size: 11px; margin-left: 4px; }
+        .resto-michelin {
+            font-size: 9px; padding: 1px 6px; border-radius: 8px;
+            margin-left: auto; flex-shrink: 0; font-weight: 600;
+        }
+        .rm-star { background: var(--red); color: white; }
+        .rm-bib { background: var(--orange); color: white; }
+        .rm-rec { background: #f0f0f0; color: var(--gray); }
+
+        .btn-map {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: var(--violet); color: white; border: none;
+            border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600;
+            cursor: pointer; width: 100%; margin-top: 12px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-map svg { width: 18px; height: 18px; }
+
+        /* ===== MAP VIEW ===== */
+        #view-map { position: relative; }
+        #map { width: 100%; flex: 1; }
+
+        /* --- MARQUEURS --- */
+        .marker-container { display: flex; flex-direction: column; align-items: center; }
+        .marker-label {
+            border-radius: 5px; padding: 3px 7px; font-size: 11px; font-weight: 600;
+            white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            margin-bottom: 3px; letter-spacing: 0.2px;
+        }
+        .marker-arrow { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+        .marker-dot {
+            width: 8px; height: 8px; border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4); margin-top: -1px;
+        }
+
+        .marker-label.h-rec { background: #6749FF; color: white; border: 2px solid #5035e0; }
+        .marker-arrow.h-rec { border-top: 7px solid #6749FF; }
+        .marker-dot.h-rec   { background: #6749FF; width: 10px; height: 10px; }
+
+        .marker-label.h-other { background: #EDE9FF; color: #6749FF; border: 2px solid #D5CCFF; }
+        .marker-arrow.h-other { border-top: 7px solid #D5CCFF; }
+        .marker-dot.h-other   { background: #D5CCFF; }
+
+        .marker-label.r-star { background: #C41D3E; color: white; border: 2px solid #A3162F; }
+        .marker-arrow.r-star { border-top: 7px solid #C41D3E; }
+        .marker-dot.r-star   { background: #C41D3E; width: 10px; height: 10px; }
+
+        .marker-label.r-bib { background: #E8590C; color: white; border: 2px solid #CF4F0A; }
+        .marker-arrow.r-bib { border-top: 7px solid #E8590C; }
+        .marker-dot.r-bib   { background: #E8590C; }
+
+        .marker-label.r-rec { background: white; color: #C41D3E; border: 2px solid #C41D3E; }
+        .marker-arrow.r-rec { border-top: 7px solid #C41D3E; }
+        .marker-dot.r-rec   { background: #C41D3E; }
+
+        .marker-label.r-sk { background: #0B7A5F; color: white; border: 2px solid #096B52; }
+        .marker-arrow.r-sk { border-top: 7px solid #0B7A5F; }
+        .marker-dot.r-sk   { background: #0B7A5F; }
+
+        .marker-label.r-sk-star { background: #065040; color: white; border: 2px solid #054535; }
+        .marker-arrow.r-sk-star { border-top: 7px solid #065040; }
+        .marker-dot.r-sk-star   { background: #065040; width: 10px; height: 10px; }
+
+        .marker-label.gare { background: #1A1A1A; color: white; border: 2px solid #000; font-size: 12px; }
+        .marker-arrow.gare { border-top: 7px solid #1A1A1A; }
+        .marker-dot.gare   { background: #1A1A1A; width: 12px; height: 12px; }
+        .train-icon { font-size: 14px; margin-right: 4px; vertical-align: middle; }
+
+        .marker-label.poi { background: #1565C0; color: white; border: 2px solid #0D47A1; font-size: 10px; }
+        .marker-arrow.poi { border-top: 7px solid #1565C0; }
+        .marker-dot.poi   { background: #1565C0; }
+
+        /* --- POPUPS --- */
+        .leaflet-popup-content {
+            font-family: -apple-system, 'Segoe UI', sans-serif;
+            font-size: 13px; line-height: 1.5; min-width: 220px;
+        }
+        .leaflet-popup-content h3 { margin: 0 0 6px 0; font-size: 15px; }
+        .leaflet-popup-content h3.hotel { color: #6749FF; }
+        .leaflet-popup-content h3.resto-c { color: #C41D3E; }
+        .leaflet-popup-content h3.resto-sk { color: #0B7A5F; }
+        .leaflet-popup-content h3.gare { color: #1A1A1A; }
+        .leaflet-popup-content .tag {
+            display: inline-block; font-size: 10px; padding: 2px 6px;
+            border-radius: 3px; margin: 2px 2px 2px 0;
+        }
+        .leaflet-popup-content .tag.t-hotel { background: #EDE9FF; color: #6749FF; }
+        .leaflet-popup-content .tag.t-hotel.top { background: #6749FF; color: white; }
+        .leaflet-popup-content .tag.t-resto { background: #FFEAE0; color: #C41D3E; }
+        .leaflet-popup-content .tag.t-resto.top { background: #C41D3E; color: white; }
+        .leaflet-popup-content .tag.t-sk { background: #E0F5EE; color: #0B7A5F; }
+        .leaflet-popup-content .tag.t-sk.top { background: #0B7A5F; color: white; }
+        .leaflet-popup-content .tag.t-gare { background: #333; color: white; }
+
+        /* Map day filter bar */
+        .map-day-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            background: white; z-index: 1001;
+            display: flex; overflow-x: auto; padding: 0 8px;
+            border-bottom: 1px solid #eee;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .map-day-bar::-webkit-scrollbar { display: none; }
+        .map-day-btn {
+            flex-shrink: 0; padding: 10px 14px; cursor: pointer;
+            font-size: 12px; font-weight: 600; color: var(--gray);
+            border: none; background: none; white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .map-day-btn.active { color: var(--violet); border-bottom-color: var(--violet); }
+
+        /* Filter toggle button */
+        .filter-toggle {
+            position: absolute; top: 50px; right: 12px; z-index: 1002;
+            background: white; color: var(--violet); border: 2px solid var(--violet);
+            border-radius: 50%; width: 40px; height: 40px; font-size: 18px;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Filter panel */
+        .filter-panel {
+            position: absolute; top: 100px; right: 12px;
+            background: white; border-radius: var(--radius);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2); z-index: 1001;
+            font-size: 13px; min-width: 240px; max-height: calc(100% - 140px);
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            display: none;
+        }
+        .filter-panel.open { display: block; }
+        .filter-header {
+            padding: 14px 16px 10px; border-bottom: 2px solid var(--violet);
+            position: sticky; top: 0; background: white; border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .filter-header h4 { margin: 0; font-size: 15px; color: #333; }
+        .filter-body { padding: 8px 16px 14px; }
+        .filter-section { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+        .filter-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .filter-section-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 6px; display: flex;
+            align-items: center; cursor: pointer; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-section-title .arrow {
+            font-size: 10px; margin-right: 6px; transition: transform 0.2s;
+            display: inline-block; width: 12px;
+        }
+        .filter-section-title .arrow.collapsed { transform: rotate(-90deg); }
+        .filter-section-content { overflow: hidden; transition: max-height 0.25s ease; }
+        .filter-item {
+            display: flex; align-items: center; margin: 4px 0;
+            cursor: pointer; user-select: none; padding: 4px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-item.sub { padding-left: 12px; }
+        .filter-item input[type="checkbox"] { display: none; }
+        .filter-check {
+            width: 20px; height: 20px; border-radius: 4px; margin-right: 8px;
+            border: 2px solid #ccc; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s ease; flex-shrink: 0;
+        }
+        .filter-check svg { width: 12px; height: 12px; opacity: 0; transition: opacity 0.15s ease; }
+        .filter-item input:checked + .filter-check svg { opacity: 1; }
+        .filter-item input:checked + .filter-check.fc-violet { background: var(--violet); border-color: #5035e0; }
+        .filter-item input:checked + .filter-check.fc-red { background: var(--red); border-color: var(--red-dark); }
+        .filter-item input:checked + .filter-check.fc-green { background: var(--green); border-color: #096B52; }
+        .filter-item input:checked + .filter-check.fc-black { background: var(--black); border-color: #000; }
+        .filter-label { font-weight: 500; color: #333; font-size: 13px; flex: 1; }
+        .filter-label.main { font-weight: 600; font-size: 14px; }
+        .filter-count { color: #999; font-size: 11px; margin-left: 4px; }
+        .filter-quartier { color: #888; font-size: 11px; margin-left: auto; font-style: italic; }
+        .hotel-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+
+        /* Offline indicator */
+        .offline-badge {
+            display: none; position: absolute; top: 50px; left: 12px; z-index: 1002;
+            background: var(--orange); color: white; border-radius: 6px;
+            padding: 4px 10px; font-size: 11px; font-weight: 600;
+        }
+        .offline-badge.visible { display: block; }
+
+        /* ===== INFO VIEW ===== */
+        #view-info { background: #f8f7ff; }
+        .info-header {
+            background: var(--violet); color: white;
+            padding: 16px; flex-shrink: 0;
+        }
+        .info-header h1 { font-size: 20px; font-weight: 700; }
+        .info-content {
+            flex: 1; overflow-y: auto; padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .info-card {
+            background: white; border-radius: var(--radius);
+            padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .info-card h3 { font-size: 15px; color: var(--violet); margin-bottom: 8px; }
+        .info-card p { font-size: 13px; color: var(--black); line-height: 1.5; margin-bottom: 6px; }
+        .info-card .info-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 0; border-bottom: 1px solid #f5f5f5;
+            font-size: 13px;
+        }
+        .info-card .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: var(--gray); min-width: 80px; }
+        .info-value { color: var(--black); }
+    </style>
+</head>
+<body>
+
+<!-- ========== VUE PLANNING ========== -->
+<div class="view active" id="view-planning">
+    <div class="planning-header">
+        <h1>Londres Avril 2026</h1>
+        <p>2 adultes + 1 enfant (12 ans) - 11 au 18 avril</p>
+    </div>
+    <div class="day-tabs" id="day-tabs"></div>
+    <div class="day-content" id="day-content"></div>
+</div>
+
+<!-- ========== VUE CARTE ========== -->
+<div class="view" id="view-map">
+    <div class="map-day-bar" id="map-day-bar"></div>
+    <div id="map"></div>
+    <div class="offline-badge" id="offline-badge">Hors ligne</div>
+    <button class="filter-toggle" id="filter-toggle" onclick="document.getElementById('filter-panel').classList.toggle('open')">&#9881;</button>
+    <div class="filter-panel" id="filter-panel">
+        <div class="filter-header"><h4>Filtres</h4></div>
+        <div class="filter-body">
+            <div class="filter-section">
+                <div class="filter-section-title" style="color:#6749FF" onclick="toggleSection('sec-hotels')">
+                    <span class="arrow" id="arrow-sec-hotels">&#9660;</span> Hotels Firmdale
+                </div>
+                <div class="filter-section-content" id="sec-hotels">
+                    <label class="filter-item">
+                        <input type="checkbox" id="f-hotels-all" checked onchange="toggleAllHotels()">
+                        <div class="filter-check fc-violet"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" fill="none"/></svg></div>
+                        <span class="filter-label main">Tous les hotels</span>
+                        <span class="filter-count" id="c-hotels"></span>
+                    </label>
+                    <div id="hotels-list"></div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-section-title" style="color:#C41D3E" onclick="toggleSection('sec-restos')">
+                    <span class="arrow" id="arrow-sec-restos">&#9660;</span> Restaurants
+                </div>
+                <div class="filter-section-content" id="sec-restos">
+                    <label class="filter-item">
+                        <input type="checkbox" id="f-restos-c" checked onchange="toggleLayer('restosC')">
+                        <div class="filter-check fc-red"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" fill="none"/></svg></div>
+                        <span class="filter-label main">Centre Londres</span>
+                        <span class="filter-count" id="c-restos-c"></span>
+                    </label>
+                    <label class="filter-item">
+                        <input type="checkbox" id="f-restos-sk" checked onchange="toggleLayer('restosSK')">
+                        <div class="filter-check fc-green"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" fill="none"/></svg></div>
+                        <span class="filter-label main">South Kensington</span>
+                        <span class="filter-count" id="c-restos-sk"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <label class="filter-item">
+                    <input type="checkbox" id="f-gares" checked onchange="toggleLayer('gares')">
+                    <div class="filter-check fc-black"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" fill="none"/></svg></div>
+                    <span class="filter-label main">Gares</span>
+                    <span class="filter-count" id="c-gares"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== VUE INFOS ========== -->
+<div class="view" id="view-info">
+    <div class="info-header"><h1>Infos pratiques</h1></div>
+    <div class="info-content">
+        <div class="info-card">
+            <h3>Vols</h3>
+            <p>easyJet Geneve (GVA) - Gatwick (LGW)</p>
+            <div class="info-row"><span class="info-label">Duree</span><span class="info-value">1h40</span></div>
+            <div class="info-row"><span class="info-label">Prix A/R</span><span class="info-value">60-120 EUR / personne</span></div>
+            <div class="info-row"><span class="info-label">Transfert</span><span class="info-value">Gatwick Express, 30 min</span></div>
+        </div>
+        <div class="info-card">
+            <h3>Cambridge (depuis King's Cross)</h3>
+            <div class="info-row"><span class="info-label">Duree</span><span class="info-value">49 min express</span></div>
+            <div class="info-row"><span class="info-label">Compagnie</span><span class="info-value">Great Northern</span></div>
+            <div class="info-row"><span class="info-label">Prix A/R</span><span class="info-value">50-70 GBP (3 pers.)</span></div>
+            <div class="info-row"><span class="info-label">Astuce</span><span class="info-value">Billet enfant a 2 GBP</span></div>
+        </div>
+        <div class="info-card">
+            <h3>Oxford (depuis Paddington)</h3>
+            <div class="info-row"><span class="info-label">Duree</span><span class="info-value">45 min express</span></div>
+            <div class="info-row"><span class="info-label">Compagnie</span><span class="info-value">GWR</span></div>
+            <div class="info-row"><span class="info-label">Prix A/R</span><span class="info-value">40-70 GBP (3 pers.)</span></div>
+        </div>
+        <div class="info-card">
+            <h3>Transport Londres</h3>
+            <p>Oyster Card ou carte bancaire contactless sur tout le reseau TfL (metro, bus, Overground).</p>
+            <div class="info-row"><span class="info-label">Daily cap</span><span class="info-value">8.10 GBP (zones 1-2)</span></div>
+            <div class="info-row"><span class="info-label">Enfant</span><span class="info-value">Gratuit &lt;11 ans, demi-tarif 11-15 ans avec Zip Oyster</span></div>
+        </div>
+        <div class="info-card">
+            <h3>Contacts utiles</h3>
+            <div class="info-row"><span class="info-label">Urgences</span><span class="info-value">999 (police, pompiers, ambulance)</span></div>
+            <div class="info-row"><span class="info-label">NHS</span><span class="info-value">111 (conseil medical)</span></div>
+            <div class="info-row"><span class="info-label">Consulat FR</span><span class="info-value">+44 20 7073 1200</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== NAV ========== -->
+<nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('planning')" id="tab-planning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="14.01"/></svg>
+        Planning
+    </button>
+    <button class="nav-tab" onclick="switchView('map')" id="tab-map">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Carte
+    </button>
+    <button class="nav-tab" onclick="switchView('info')" id="tab-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Infos
+    </button>
+</nav>
+
+<script>
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+}
+window.addEventListener('online', () => document.getElementById('offline-badge').classList.remove('visible'));
+window.addEventListener('offline', () => document.getElementById('offline-badge').classList.add('visible'));
+if (!navigator.onLine) document.getElementById('offline-badge').classList.add('visible');
+
+// ===== DONNEES =====
+const hotelsData = [
+    { id:"ham-yard", name:"Ham Yard Hotel", lat:51.5115, lng:-0.1345, address:"1 Ham Yard, Soho, W1D 7DT", quartier:"Soho", stars:"5*", prix:"700-1000 GBP/nuit", info:"Fenetres Critall, cour arboree, rooftop, orangerie", tags:["RECOMMANDE","Lumineux","Exterieur"], style:"h-rec" },
+    { id:"soho", name:"The Soho Hotel", lat:51.5138, lng:-0.1328, address:"4 Richmond Mews, Soho, W1D 3DH", quartier:"Soho", stars:"5*", prix:"545-700 GBP/nuit", info:"Reference Firmdale, cinema prive, 2 salles de projection", tags:["Reference","Cinema"], style:"h-other" },
+    { id:"charlotte", name:"Charlotte Street Hotel", lat:51.5194, lng:-0.1338, address:"15-17 Charlotte Street, Fitzrovia, W1T 1RJ", quartier:"Fitzrovia", stars:"4* sup", prix:"550-820 GBP/nuit", info:"Fitzrovia, terrasse Oscar, lobby lumineux", tags:["Fitzrovia"], style:"h-other" },
+    { id:"covent", name:"Covent Garden Hotel", lat:51.5142, lng:-0.1267, address:"10 Monmouth Street, Seven Dials, WC2H 9HB", quartier:"Covent Garden", stars:"5*", prix:"550-800 GBP/nuit", info:"Theatreland, Seven Dials, Brasserie Max", tags:["Seven Dials"], style:"h-other" },
+    { id:"haymarket", name:"Haymarket Hotel", lat:51.5086, lng:-0.1316, address:"1 Suffolk Place, Haymarket, SW1Y 4HX", quartier:"St James's", stars:"5*", prix:"500-700 GBP/nuit", info:"Volumes Nash, piscine 18m, terrasse oliviers", tags:["2e choix","Piscine"], style:"h-rec" },
+    { id:"sixteen", name:"Number Sixteen", lat:51.4928, lng:-0.1738, address:"16 Sumner Place, South Ken, SW7 3EG", quartier:"South Ken", stars:"5*", prix:"400-600 GBP/nuit", info:"Plus beau jardin Firmdale, orangerie, koi", tags:["Jardin secret"], style:"h-other" },
+    { id:"dorset", name:"Dorset Square Hotel", lat:51.5234, lng:-0.1615, address:"39-40 Dorset Square, Marylebone, NW1 6QN", quartier:"Marylebone", stars:"4* sup", prix:"430-600 GBP/nuit", info:"Square georgien, balcons, jardin prive", tags:["Marylebone"], style:"h-other" },
+    { id:"knights", name:"Knightsbridge Hotel", lat:51.4968, lng:-0.1673, address:"10 Beaufort Gardens, Knightsbridge, SW3 1PT", quartier:"Knightsbridge", stars:"4*", prix:"350-550 GBP/nuit", info:"Intime, Beaufort Gardens, pas d'exterieur", tags:["Intime"], style:"h-other" }
+];
+
+const restosCentreData = [
+    { name:"Kitchen W8", lat:51.4975, lng:-0.1925, address:"11-13 Abingdon Rd, W8", cuisine:"Europeenne moderne", michelin:"1 etoile", prix:"30-50 GBP", moment:"Dej (V&A)", style:"r-star" },
+    { name:"Harwood Arms", lat:51.4795, lng:-0.1952, address:"Walham Grove, SW6", cuisine:"Britannique, gibier", michelin:"1 etoile", prix:"50-80 GBP", moment:"Diner", style:"r-star" },
+    { name:"The Palomar", lat:51.5112, lng:-0.1350, address:"34 Rupert St, W1D", cuisine:"Levantine", michelin:"Bib Gourmand", prix:"30-45 GBP", moment:"Diner", style:"r-bib" },
+    { name:"Hoppers", lat:51.5130, lng:-0.1313, address:"49 Frith St, W1D", cuisine:"Sri-lankaise", michelin:"Bib Gourmand", prix:"20-30 GBP", moment:"Diner", style:"r-bib" },
+    { name:"Padella", lat:51.5052, lng:-0.0930, address:"6 Southwark St, SE1", cuisine:"Pates fraiches", michelin:"Bib Gourmand", prix:"15-25 GBP", moment:"Dej (Tate)", style:"r-bib" },
+    { name:"Bancone", lat:51.5106, lng:-0.1260, address:"39 William IV St, WC2N", cuisine:"Pates italiennes", michelin:"Bib Gourmand", prix:"20-30 GBP", moment:"Dej ou diner", style:"r-bib" },
+    { name:"Brasserie Zedel", lat:51.5102, lng:-0.1360, address:"20 Sherwood St, W1F", cuisine:"Brasserie francaise", michelin:"Bib Gourmand", prix:"20-35 GBP", moment:"Dej", style:"r-bib" },
+    { name:"The Barbary", lat:51.5141, lng:-0.1264, address:"16 Neal's Yard, WC2H", cuisine:"Nord-africaine", michelin:"Bib Gourmand", prix:"25-40 GBP", moment:"Diner", style:"r-bib" },
+    { name:"Noble Rot", lat:51.5220, lng:-0.1210, address:"51 Lamb's Conduit St, WC1N", cuisine:"Europeenne", michelin:"Recommande", prix:"45-55 GBP", moment:"Dej (British Museum)", style:"r-rec" },
+    { name:"Anchor & Hope", lat:51.5063, lng:-0.1077, address:"36 The Cut, SE1", cuisine:"Gastropub", michelin:"Recommande", prix:"35-45 GBP", moment:"Dej (Tate Modern)", style:"r-rec" },
+    { name:"Le Pont de la Tour", lat:51.5042, lng:-0.0740, address:"36D Shad Thames, SE1", cuisine:"Francaise", michelin:"Recommande", prix:"45-65 GBP", moment:"Dej (Tower)", style:"r-rec" },
+    { name:"Langan's Brasserie", lat:51.5075, lng:-0.1415, address:"Stratton St, W1J", cuisine:"Brasserie brit.", michelin:"Recommande", prix:"40-55 GBP", moment:"Dej", style:"r-rec" },
+    { name:"Cafe Murano", lat:51.5076, lng:-0.1365, address:"33 St James's St, SW1A", cuisine:"Italienne du Nord", michelin:"Recommande", prix:"35-50 GBP", moment:"Diner", style:"r-rec" },
+    { name:"Brigadiers", lat:51.5130, lng:-0.0890, address:"1-5 Bloomberg Arcade, EC4N", cuisine:"BBQ indien", michelin:"Recommande", prix:"35-50 GBP", moment:"Diner", style:"r-rec" },
+    { name:"Hawksmoor", lat:51.5094, lng:-0.1355, address:"5A Air St, W1J", cuisine:"Steakhouse", michelin:"Recommande", prix:"50-70 GBP", moment:"Diner", style:"r-rec" }
+];
+
+const restosSKData = [
+    { name:"Amaya", lat:51.5008, lng:-0.1575, address:"Halkin Arcade, 19 Motcomb St, SW1X", cuisine:"Indienne grill", michelin:"1 etoile Michelin", prix:"70-90 GBP", dist:"23 min", style:"r-sk-star" },
+    { name:"Elystan Street", lat:51.4917, lng:-0.1660, address:"43 Elystan St, Chelsea, SW3", cuisine:"Britannique contemporaine", michelin:"1 etoile Michelin", prix:"45-81 GBP", dist:"9 min", style:"r-sk-star" },
+    { name:"Tom Brown at The Capital", lat:51.4990, lng:-0.1615, address:"22-24 Basil St, SW3", cuisine:"Poisson, fruits de mer", michelin:"1 etoile Michelin", prix:"80-165 GBP", dist:"18 min", style:"r-sk-star" },
+    { name:"Corenucopia", lat:51.4940, lng:-0.1555, address:"18-22 Holbein Place, SW1W", cuisine:"Britannique (Clare Smyth)", michelin:"1 etoile Michelin", prix:"100+ GBP", dist:"21 min", style:"r-sk-star" },
+    { name:"Gordon Ramsay", lat:51.4867, lng:-0.1640, address:"68 Royal Hospital Rd, SW3", cuisine:"Haute gastronomie", michelin:"3 etoiles Michelin", prix:"180-260 GBP", dist:"16 min", style:"r-sk-star" },
+    { name:"Josephine Bouchon", lat:51.4845, lng:-0.1830, address:"315 Fulham Rd, SW10", cuisine:"Bouchon lyonnais", michelin:"Bib Gourmand", prix:"25-45 GBP", dist:"18 min", style:"r-sk" },
+    { name:"Pravaas", lat:51.4935, lng:-0.1740, address:"3 Glendower Place, SW7", cuisine:"Indienne contemporaine", michelin:"Recommande Michelin", prix:"70-85 GBP", dist:"1 min", style:"r-sk" },
+    { name:"Kutir", lat:51.4895, lng:-0.1655, address:"10 Lincoln St, Chelsea, SW3", cuisine:"Indienne fine dining", michelin:"Hardens", prix:"55-80 GBP", dist:"11 min", style:"r-sk" },
+    { name:"Zaika", lat:51.5003, lng:-0.1880, address:"1 Kensington High St, W8", cuisine:"Indienne regionale", michelin:"Ex-etoile, Hardens", prix:"50-70 GBP", dist:"21 min", style:"r-sk" },
+    { name:"The Anglesea Arms", lat:51.4912, lng:-0.1778, address:"15 Selwood Terrace, SW7", cuisine:"Gastropub", michelin:"Top 50 Gastropubs", prix:"35-50 GBP", dist:"5 min", style:"r-sk" },
+    { name:"The Holland", lat:51.4960, lng:-0.1940, address:"25 Earls Court Rd, W8", cuisine:"Britannique regenerative", michelin:"Recommande Michelin", prix:"50-61 GBP", dist:"23 min", style:"r-sk" },
+    { name:"CERU", lat:51.4940, lng:-0.1730, address:"7-9 Bute St, SW7", cuisine:"Levantin, mezes", michelin:"Hardens", prix:"35-50 GBP", dist:"2 min", style:"r-sk" },
+    { name:"Cambio de Tercio", lat:51.4905, lng:-0.1810, address:"163 Old Brompton Rd, SW5", cuisine:"Espagnol contemporain", michelin:"Hardens", prix:"50-65 GBP", dist:"9 min", style:"r-sk" },
+    { name:"Lucio", lat:51.4880, lng:-0.1760, address:"257 Fulham Rd, Chelsea, SW3", cuisine:"Italien authentique", michelin:"Hardens", prix:"50-70 GBP", dist:"9 min", style:"r-sk" },
+    { name:"Daphne's", lat:51.4910, lng:-0.1695, address:"112 Draycott Ave, Chelsea, SW3", cuisine:"Italien haut de gamme", michelin:"Hardens", prix:"65-90 GBP", dist:"6 min", style:"r-sk" },
+    { name:"Medlar", lat:51.4815, lng:-0.1850, address:"438 King's Road, SW10", cuisine:"Franco-europeenne", michelin:"Ex-etoile, Hardens", prix:"45-80 GBP", dist:"24 min", style:"r-sk" },
+    { name:"Min Jiang", lat:51.5010, lng:-0.1895, address:"Royal Garden Hotel 10e, W8", cuisine:"Chinois haut de gamme", michelin:"Hardens", prix:"70-100 GBP", dist:"23 min", style:"r-sk" },
+    { name:"Yashin Sushi", lat:51.4995, lng:-0.1940, address:"1A Argyll Rd, W8", cuisine:"Sushi d'auteur", michelin:"Hardens", prix:"60-90 GBP", dist:"26 min", style:"r-sk" },
+    { name:"Pascor", lat:51.4990, lng:-0.2020, address:"221 Kensington High St, W8", cuisine:"Levantin eleve", michelin:"Hardens", prix:"40-55 GBP", dist:"34 min", style:"r-sk" },
+    { name:"La Palombe", lat:51.4970, lng:-0.2060, address:"267 Kensington High St, W8", cuisine:"Bistrot francais", michelin:"Michelin 2026", prix:"30-40 GBP", dist:"37 min", style:"r-sk" }
+];
+
+const garesData = [
+    { name:"King's Cross", lat:51.5308, lng:-0.1238, dest:"Cambridge", duree:"49 min express", compagnie:"Great Northern" },
+    { name:"Paddington", lat:51.5154, lng:-0.1755, dest:"Oxford", duree:"45 min express", compagnie:"GWR" }
+];
+
+// Points d'interet par jour (coordonnees Londres)
+const poisData = {
+    j1: [],
+    j2: [
+        { name:"Westminster Abbey", lat:51.4993, lng:-0.1273 },
+        { name:"Houses of Parliament", lat:51.4995, lng:-0.1248 },
+        { name:"London Eye", lat:51.5033, lng:-0.1195 },
+        { name:"South Bank", lat:51.5065, lng:-0.1058 },
+        { name:"Tate Modern", lat:51.5076, lng:-0.0994 }
+    ],
+    j3: [], // Cambridge
+    j4: [
+        { name:"British Museum", lat:51.5194, lng:-0.1270 },
+        { name:"Covent Garden", lat:51.5117, lng:-0.1240 },
+        { name:"Soho", lat:51.5130, lng:-0.1340 },
+        { name:"National Gallery", lat:51.5089, lng:-0.1283 }
+    ],
+    j5: [], // Oxford
+    j6: [], // Oxford matin
+    j7: [
+        { name:"Tower of London", lat:51.5081, lng:-0.0759 },
+        { name:"Tower Bridge", lat:51.5055, lng:-0.0754 },
+        { name:"Borough Market", lat:51.5055, lng:-0.0910 },
+        { name:"St Paul's Cathedral", lat:51.5138, lng:-0.0984 }
+    ]
+};
+
+// Programme jour par jour
+const defaultPlanning = [
+    {
+        id: "j1", day: "J1", date: "Sam. 11 avril", title: "Arrivee a Londres",
+        badge: "london", badgeText: "Londres",
+        activities: [
+            { time:"~14h", name:"Arrivee Gatwick", detail:"Gatwick Express vers Victoria (30 min)", type:"transport" },
+            { time:"15h", name:"Check-in hotel", detail:"Installation, decouverte du quartier", type:"visit" },
+            { time:"16h30", name:"Promenade quartier", detail:"Explorer les rues autour de l'hotel, premiers reperes", type:"visit" },
+            { time:"19h30", name:"Diner", detail:"Restaurant du quartier, premier soir detendu", type:"meal" }
+        ]
+    },
+    {
+        id: "j2", day: "J2", date: "Dim. 12 avril", title: "Westminster, South Bank, Tate Modern",
+        badge: "london", badgeText: "Londres",
+        activities: [
+            { time:"9h30", name:"Westminster Abbey", detail:"Visite exterieure et quartier parlementaire", type:"visit", tags:["Incontournable"] },
+            { time:"10h30", name:"Houses of Parliament & Big Ben", detail:"Vue iconique depuis le pont", type:"visit" },
+            { time:"11h30", name:"London Eye", detail:"Vue panoramique 360 sur Londres (reserver en ligne)", type:"visit", tags:["Reserver"] },
+            { time:"13h", name:"Dejeuner", detail:"Anchor & Hope ou restaurant South Bank", type:"meal" },
+            { time:"14h30", name:"Tate Modern", detail:"Collections permanentes gratuites, oeuvres contemporaines", type:"visit", tags:["Gratuit"] },
+            { time:"16h30", name:"Millennium Bridge", detail:"Traversee vers St Paul's, vue sur la Tamise", type:"visit" },
+            { time:"19h", name:"Diner", detail:"Padella (pates fraiches, Bib Gourmand) si file raisonnable", type:"meal" }
+        ]
+    },
+    {
+        id: "j3", day: "J3", date: "Lun. 13 avril", title: "Excursion Cambridge",
+        badge: "cambridge", badgeText: "Cambridge",
+        activities: [
+            { time:"8h30", name:"Train King's Cross", detail:"Great Northern express, 49 min. Billet enfant a 2 GBP", type:"transport" },
+            { time:"9h30", name:"King's College Chapel", detail:"Chef-d'oeuvre gothique, vitraux du XVIe siecle", type:"visit", tags:["Incontournable"] },
+            { time:"10h30", name:"The Backs", detail:"Promenade le long des colleges, vue sur les jardins", type:"visit" },
+            { time:"11h30", name:"Punting sur la Cam", detail:"Balade en barque, activite familiale ideale (45 min)", type:"visit", tags:["Famille"] },
+            { time:"13h", name:"Dejeuner", detail:"Fitzbillies (Chelsea buns celebres) ou The Eagle (pub ADN)", type:"meal" },
+            { time:"14h30", name:"Colleges et centre-ville", detail:"Trinity College, St John's, marche artisanal", type:"visit" },
+            { time:"16h", name:"Musee Fitzwilliam", detail:"Collections d'art et antiquites, entree gratuite", type:"visit", tags:["Gratuit"] },
+            { time:"17h30", name:"Retour train", detail:"Train vers King's Cross, retour hotel", type:"transport" }
+        ]
+    },
+    {
+        id: "j4", day: "J4", date: "Mar. 14 avril", title: "British Museum, Covent Garden, Soho",
+        badge: "london", badgeText: "Londres",
+        activities: [
+            { time:"9h30", name:"British Museum", detail:"Collections egyptiennes, Rosetta Stone, Parthenon. Gratuit", type:"visit", tags:["Incontournable","Gratuit"] },
+            { time:"12h30", name:"Dejeuner", detail:"Noble Rot (Europeenne, Recommande Michelin) a 8 min", type:"meal" },
+            { time:"14h", name:"Covent Garden", detail:"Marche couvert, artistes de rue, boutiques", type:"visit" },
+            { time:"15h30", name:"Seven Dials & Neal's Yard", detail:"Quartier colore, cafes independants", type:"visit" },
+            { time:"16h30", name:"National Gallery", detail:"Visite libre, Turner, Van Gogh, Monet. Gratuit", type:"visit", tags:["Gratuit"] },
+            { time:"19h", name:"Diner Soho", detail:"The Palomar (levantine) ou Hoppers (sri-lankais)", type:"meal" }
+        ]
+    },
+    {
+        id: "j5", day: "J5", date: "Mer. 15 avril", title: "Excursion Oxford - journee",
+        badge: "oxford", badgeText: "Oxford (nuit)",
+        activities: [
+            { time:"8h", name:"Train Paddington", detail:"GWR express, 45 min vers Oxford", type:"transport" },
+            { time:"9h", name:"Christ Church College", detail:"Le plus celebre college, Great Hall (Harry Potter)", type:"visit", tags:["Incontournable"] },
+            { time:"10h30", name:"Bodleian Library", detail:"Visite guidee de la plus ancienne bibliotheque d'Oxford", type:"visit" },
+            { time:"12h", name:"Radcliffe Camera", detail:"Batiment iconique, photo depuis la cour", type:"visit" },
+            { time:"12h30", name:"Dejeuner", detail:"Covered Market (depuis 1774) ou The Eagle and Child (pub Tolkien)", type:"meal" },
+            { time:"14h", name:"Ashmolean Museum", detail:"Plus ancien musee public du monde, gratuit", type:"visit", tags:["Gratuit"] },
+            { time:"16h", name:"Promenade colleges", detail:"Magdalen College, jardin des cerfs, bord de riviere", type:"visit" },
+            { time:"19h", name:"Diner Oxford", detail:"The Parsonage ou Quod, ambiance historique", type:"meal" }
+        ]
+    },
+    {
+        id: "j6", day: "J6", date: "Jeu. 16 avril", title: "Oxford matin, retour Londres PM",
+        badge: "oxford", badgeText: "Oxford + Londres",
+        activities: [
+            { time:"9h30", name:"Marche couvert Oxford", detail:"Petit-dejeuner local, produits frais", type:"visit" },
+            { time:"10h30", name:"Pitt Rivers Museum", detail:"Cabinet de curiosites extraordinaire, gratuit", type:"visit", tags:["Gratuit","Famille"] },
+            { time:"12h", name:"Dejeuner rapide", detail:"Dernier repas a Oxford avant le retour", type:"meal" },
+            { time:"13h30", name:"Train retour Londres", detail:"GWR express vers Paddington, 45 min", type:"transport" },
+            { time:"15h", name:"V&A Museum", detail:"Arts decoratifs, mode, design. Gratuit", type:"visit", tags:["Gratuit"] },
+            { time:"17h", name:"South Kensington", detail:"Promenade quartier, Harrods vitrine, jardin N16", type:"visit" },
+            { time:"19h30", name:"Diner South Ken", detail:"Pravaas (1 min du N16) ou CERU (2 min)", type:"meal" }
+        ]
+    },
+    {
+        id: "j7", day: "J7", date: "Ven. 17 avril", title: "Tower, Borough Market, dernieres visites",
+        badge: "london", badgeText: "Londres",
+        activities: [
+            { time:"9h30", name:"Tower of London", detail:"Joyaux de la Couronne, Beefeaters. Reserver en ligne", type:"visit", tags:["Incontournable","Reserver"] },
+            { time:"12h", name:"Tower Bridge", detail:"Traversee et vue panoramique (Exhibition en option)", type:"visit" },
+            { time:"12h30", name:"Borough Market", detail:"Le plus celebre marche alimentaire de Londres", type:"meal", tags:["Incontournable"] },
+            { time:"14h30", name:"St Paul's Cathedral", detail:"Dome iconique, Whispering Gallery", type:"visit" },
+            { time:"16h", name:"Shopping / temps libre", detail:"Derniers achats, souvenirs, flaner", type:"visit" },
+            { time:"19h", name:"Diner d'adieu", detail:"Restaurant special pour le dernier soir", type:"meal" }
+        ]
+    },
+    {
+        id: "j8", day: "J8", date: "Sam. 18 avril", title: "Depart",
+        badge: "depart", badgeText: "Depart",
+        activities: [
+            { time:"Matin", name:"Check-out", detail:"Derniers moments, petit-dejeuner a l'hotel", type:"visit" },
+            { time:"~11h", name:"Transfert Gatwick", detail:"Gatwick Express depuis Victoria, arriver 2h avant le vol", type:"transport" },
+            { time:"~14h", name:"Vol retour Geneve", detail:"easyJet LGW vers GVA, 1h40", type:"transport" }
+        ]
+    }
+];
+
+// Load planning from localStorage or use default
+let planning = JSON.parse(localStorage.getItem('londres-planning')) || defaultPlanning;
+let currentDay = 0;
+let currentMapDay = 'all';
+
+// ===== PLANNING VIEW =====
+function renderDayTabs() {
+    const tabs = document.getElementById('day-tabs');
+    tabs.innerHTML = planning.map((d, i) => {
+        const cls = i === currentDay ? 'day-tab active' : 'day-tab';
+        const exc = d.badge === 'cambridge' || d.badge === 'oxford' ? ' excursion' : '';
+        return `<button class="${cls}${exc}" onclick="selectDay(${i})">${d.day}</button>`;
+    }).join('');
+}
+
+function selectDay(i) {
+    currentDay = i;
+    renderDayTabs();
+    renderDayContent();
+}
+
+function renderDayContent() {
+    const d = planning[currentDay];
+    const content = document.getElementById('day-content');
+
+    // Trouver les restaurants proches des POIs du jour
+    const dayPois = poisData[d.id] || [];
+    let nearbyHtml = '';
+
+    if (dayPois.length > 0) {
+        // Calculer le centre des POIs du jour
+        const centerLat = dayPois.reduce((s, p) => s + p.lat, 0) / dayPois.length;
+        const centerLng = dayPois.reduce((s, p) => s + p.lng, 0) / dayPois.length;
+
+        const allRestos = [...restosCentreData.map(r=>({...r,zone:'c'})), ...restosSKData.map(r=>({...r,zone:'sk'}))];
+        const nearby = allRestos.map(r => ({
+            ...r, min: walkingMin(centerLat, centerLng, r.lat, r.lng)
+        })).sort((a,b) => a.min - b.min).slice(0, 6);
+
+        const restoItems = nearby.map(r => {
+            let michelinCls = 'rm-rec';
+            if (r.michelin && (r.michelin.includes('etoile') || r.michelin.includes('Etoile'))) michelinCls = 'rm-star';
+            else if (r.michelin && r.michelin.includes('Bib')) michelinCls = 'rm-bib';
+            return `<div class="resto-item">
+                <span class="resto-dist ${r.zone}">${r.min} min</span>
+                <span class="resto-name">${r.name}</span>
+                <span class="resto-cuisine">${r.cuisine}</span>
+                <span class="resto-michelin ${michelinCls}">${r.michelin || ''}</span>
+            </div>`;
+        }).join('');
+
+        nearbyHtml = `
+            <div class="section-title">Restaurants a proximite</div>
+            <div class="nearby-restos">
+                <h3>Du centre des visites du jour</h3>
+                ${restoItems}
+            </div>`;
+    }
+
+    const activitiesHtml = d.activities.map(a => {
+        let cardCls = 'activity-card';
+        if (a.type === 'meal') cardCls += ' meal';
+        if (a.type === 'transport') cardCls += ' transport';
+        if (d.badge === 'cambridge' || d.badge === 'oxford') cardCls += ' excursion-act';
+
+        const tagsHtml = (a.tags || []).map(t => {
+            let cls = 'atag-visit';
+            if (t === 'Reserver') cls = 'atag-food';
+            if (t === 'Gratuit') cls = 'atag-tip';
+            if (t === 'Famille') cls = 'atag-tip';
+            return `<span class="activity-tag ${cls}">${t}</span>`;
+        }).join('');
+
+        return `<div class="${cardCls}">
+            <div class="activity-time">${a.time}</div>
+            <div class="activity-body">
+                <div class="activity-name">${a.name}</div>
+                <div class="activity-detail">${a.detail}</div>
+                ${tagsHtml ? `<div class="activity-tags">${tagsHtml}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    const hasMap = dayPois.length > 0;
+
+    content.innerHTML = `
+        <div class="day-info">
+            <h2>${d.title}</h2>
+            <div class="day-date">${d.date}</div>
+            <span class="day-badge ${d.badge}">${d.badgeText}</span>
+        </div>
+        <div class="section-title">Programme</div>
+        ${activitiesHtml}
+        ${nearbyHtml}
+        ${hasMap ? `<button class="btn-map" onclick="showDayOnMap('${d.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            Voir sur la carte
+        </button>` : ''}
+    `;
+    content.scrollTop = 0;
+}
+
+function showDayOnMap(dayId) {
+    switchView('map');
+    setMapDay(dayId);
+}
+
+// ===== NAVIGATION =====
+let mapInitialized = false;
+
+function switchView(viewName) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`view-${viewName}`).classList.add('active');
+    document.getElementById(`tab-${viewName}`).classList.add('active');
+    if (viewName === 'map' && !mapInitialized) {
+        initMap();
+        mapInitialized = true;
+    }
+    if (viewName === 'map' && mapInitialized) {
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+}
+
+// ===== HAVERSINE =====
+function walkingMin(lat1, lng1, lat2, lng2) {
+    const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    return Math.round(2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a))*1.3/80);
+}
+
+// ===== MAP =====
+let map, layers, hotelMarkers = {}, poiLayer;
+
+function initMap() {
+    map = L.map('map', { zoomControl: false }).setView([51.505, -0.140], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OSM &copy; CARTO', maxZoom: 18
+    }).addTo(map);
+
+    layers = { restosC: L.layerGroup().addTo(map), restosSK: L.layerGroup().addTo(map), gares: L.layerGroup().addTo(map) };
+    poiLayer = L.layerGroup().addTo(map);
+
+    const allRestos = [...restosCentreData.map(r=>({...r,zone:'centre'})), ...restosSKData.map(r=>({...r,zone:'sk'}))];
+
+    // Hotels
+    hotelsData.forEach(h => {
+        const tagsHtml = h.tags.map(t => `<span class="tag t-hotel ${t==='RECOMMANDE'||t==='2e choix'?'top':''}">${t}</span>`).join('');
+        const nearby = allRestos.map(r => ({ name:r.name, cuisine:r.cuisine, min:walkingMin(h.lat,h.lng,r.lat,r.lng), zone:r.zone })).sort((a,b)=>a.min-b.min).slice(0,8);
+        const restoList = nearby.map(r => `<div style="display:flex;align-items:center;margin:2px 0;font-size:11px"><span style="color:${r.zone==='sk'?'#0B7A5F':'#C41D3E'};font-weight:700;min-width:36px">${r.min} min</span><span>${r.name} <span style="color:#888">(${r.cuisine})</span></span></div>`).join('');
+        const marker = createMarker(h.lat, h.lng, h.name, h.style, `<h3 class="hotel">${h.name}</h3><div>${tagsHtml}</div><p style="margin:6px 0 2px"><strong>${h.address}</strong></p><p>${h.stars} | ${h.prix}</p><p>${h.info}</p><div style="margin-top:8px;padding-top:6px;border-top:1px solid #eee"><strong style="font-size:11px;color:#6749FF">Restaurants a pied :</strong>${restoList}</div>`, 1000);
+        marker.addTo(map);
+        hotelMarkers[h.id] = marker;
+    });
+
+    // Restaurants Centre
+    restosCentreData.forEach(r => {
+        createMarker(r.lat, r.lng, r.name, r.style, `<h3 class="resto-c">${r.name}</h3><div><span class="tag t-resto top">${r.michelin}</span><span class="tag t-resto">${r.moment}</span></div><p style="margin:6px 0 2px"><strong>${r.address}</strong></p><p>${r.cuisine} | ${r.prix}/pers</p>`, 500).addTo(layers.restosC);
+    });
+
+    // Restaurants South Ken
+    restosSKData.forEach(r => {
+        createMarker(r.lat, r.lng, r.name, r.style, `<h3 class="resto-sk">${r.name}</h3><div><span class="tag t-sk top">${r.michelin}</span><span class="tag t-sk">${r.dist} du N16</span></div><p style="margin:6px 0 2px"><strong>${r.address}</strong></p><p>${r.cuisine} | ${r.prix}/pers</p>`, 500).addTo(layers.restosSK);
+    });
+
+    // Gares
+    garesData.forEach(g => {
+        const label = `<span class="train-icon">\u{1F686}</span>${g.name}`;
+        const html = `<div class="marker-container"><div class="marker-label gare">${label}</div><div class="marker-arrow gare"></div><div class="marker-dot gare"></div></div>`;
+        const icon = L.divIcon({ className:'', html:html, iconSize:[0,0], iconAnchor:[0,0], popupAnchor:[0,-42] });
+        L.marker([g.lat, g.lng], { icon:icon, zIndexOffset:2000 }).bindPopup(`<h3 class="gare">\u{1F686} ${g.name} Station</h3><div><span class="tag t-gare">${g.dest}</span></div><p style="margin:6px 0 2px"><strong>Direction :</strong> ${g.dest}</p><p><strong>Duree :</strong> ${g.duree}</p><p><strong>Compagnie :</strong> ${g.compagnie}</p>`).addTo(layers.gares);
+    });
+
+    // Hotels filter list
+    const hotelsList = document.getElementById('hotels-list');
+    hotelsData.forEach(h => {
+        const li = document.createElement('label');
+        li.className = 'filter-item sub';
+        li.innerHTML = `<input type="checkbox" id="f-h-${h.id}" checked onchange="toggleHotel('${h.id}')"><div class="filter-check fc-violet"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" fill="none"/></svg></div><div class="hotel-dot" style="background:${h.style==='h-rec'?'#6749FF':'#D5CCFF'}"></div><span class="filter-label">${h.name}</span><span class="filter-quartier">${h.quartier}</span>`;
+        hotelsList.appendChild(li);
+    });
+
+    document.getElementById('c-hotels').textContent = `(${hotelsData.length})`;
+    document.getElementById('c-restos-c').textContent = `(${restosCentreData.length})`;
+    document.getElementById('c-restos-sk').textContent = `(${restosSKData.length})`;
+    document.getElementById('c-gares').textContent = `(${garesData.length})`;
+
+    // Init filter sections
+    document.querySelectorAll('.filter-section-content').forEach(el => el.style.maxHeight = '500px');
+
+    // Map day bar
+    renderMapDayBar();
+
+    // Fit bounds
+    const allPts = [...hotelsData.map(h=>[h.lat,h.lng]),...restosCentreData.map(r=>[r.lat,r.lng]),...restosSKData.map(r=>[r.lat,r.lng]),...garesData.map(g=>[g.lat,g.lng])];
+    map.fitBounds(L.latLngBounds(allPts), { padding:[50,50] });
+}
+
+function createMarker(lat, lng, label, styleClass, popupHtml, zOffset) {
+    const html = `<div class="marker-container"><div class="marker-label ${styleClass}">${label}</div><div class="marker-arrow ${styleClass}"></div><div class="marker-dot ${styleClass}"></div></div>`;
+    const icon = L.divIcon({ className:'', html:html, iconSize:[0,0], iconAnchor:[0,0], popupAnchor:[0,-42] });
+    return L.marker([lat, lng], { icon:icon, zIndexOffset:zOffset||0 }).bindPopup(popupHtml);
+}
+
+function renderMapDayBar() {
+    const bar = document.getElementById('map-day-bar');
+    const days = [{id:'all', label:'Tout'},...planning.filter(d => d.id !== 'j8').map(d => ({id:d.id, label:d.day}))];
+    bar.innerHTML = days.map(d => {
+        const cls = d.id === currentMapDay ? 'map-day-btn active' : 'map-day-btn';
+        return `<button class="${cls}" onclick="setMapDay('${d.id}')">${d.label}</button>`;
+    }).join('');
+}
+
+function setMapDay(dayId) {
+    currentMapDay = dayId;
+    renderMapDayBar();
+    poiLayer.clearLayers();
+
+    if (dayId === 'all') {
+        // Show everything, clear POIs
+        map.fitBounds(L.latLngBounds([...hotelsData.map(h=>[h.lat,h.lng]),...restosCentreData.map(r=>[r.lat,r.lng]),...restosSKData.map(r=>[r.lat,r.lng]),...garesData.map(g=>[g.lat,g.lng])]), { padding:[50,50] });
+        return;
+    }
+
+    const pois = poisData[dayId] || [];
+    if (pois.length === 0) return;
+
+    // Add POI markers
+    pois.forEach(p => {
+        createMarker(p.lat, p.lng, p.name, 'poi', `<h3 style="color:#1565C0">${p.name}</h3><p>Visite du jour</p>`, 1500).addTo(poiLayer);
+    });
+
+    // Fit to POIs + nearby restos
+    const pts = [...pois.map(p=>[p.lat,p.lng])];
+    if (pts.length > 0) {
+        map.fitBounds(L.latLngBounds(pts).pad(0.3));
+    }
+}
+
+// ===== FILTER FUNCTIONS =====
+function toggleLayer(k) {
+    const ids = {restosC:'f-restos-c',restosSK:'f-restos-sk',gares:'f-gares'};
+    document.getElementById(ids[k]).checked ? map.addLayer(layers[k]) : map.removeLayer(layers[k]);
+}
+function toggleHotel(id) {
+    const cb = document.getElementById(`f-h-${id}`);
+    cb.checked ? hotelMarkers[id].addTo(map) : map.removeLayer(hotelMarkers[id]);
+    const all = hotelsData.every(h => document.getElementById(`f-h-${h.id}`).checked);
+    const some = hotelsData.some(h => document.getElementById(`f-h-${h.id}`).checked);
+    document.getElementById('f-hotels-all').checked = all;
+    document.getElementById('f-hotels-all').indeterminate = some && !all;
+}
+function toggleAllHotels() {
+    const c = document.getElementById('f-hotels-all').checked;
+    hotelsData.forEach(h => { document.getElementById(`f-h-${h.id}`).checked = c; c ? hotelMarkers[h.id].addTo(map) : map.removeLayer(hotelMarkers[h.id]); });
+}
+function toggleSection(id) {
+    const el = document.getElementById(id), ar = document.getElementById(`arrow-${id}`);
+    if (el.style.maxHeight && el.style.maxHeight !== '500px') { el.style.maxHeight = '500px'; ar.classList.remove('collapsed'); }
+    else { el.style.maxHeight = '0px'; el.style.overflow = 'hidden'; ar.classList.add('collapsed'); }
+}
+
+// ===== INIT =====
+renderDayTabs();
+renderDayContent();
+</script>
+</body>
+</html>
