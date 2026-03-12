@@ -78,8 +78,8 @@
         .resto-dist{font-size:11px;font-weight:700;min-width:40px;flex-shrink:0}
         .resto-dist.sk{color:var(--green)}
         .resto-dist.c{color:var(--red)}
-        .resto-dist.cam{color:var(--blue)}
-        .resto-dist.ox{color:var(--amber)}
+        .resto-dist.cam{color:var(--red)}
+        .resto-dist.ox{color:var(--red)}
         .resto-name{font-weight:600;color:var(--black)}
         .resto-cuisine{color:var(--gray);font-size:11px;margin-left:4px}
         .resto-michelin{font-size:9px;padding:1px 6px;border-radius:8px;margin-left:auto;flex-shrink:0;font-weight:600}
@@ -121,24 +121,15 @@
         .marker-arrow.gare{border-top:7px solid #1A1A1A}
         .marker-dot.gare{background:#1A1A1A;width:12px;height:12px}
         .train-icon{font-size:14px;margin-right:4px;vertical-align:middle}
-        .marker-label.college{background:var(--blue);color:white;border:2px solid #0D47A1;font-size:10px}
-        .marker-arrow.college{border-top:7px solid var(--blue)}
-        .marker-dot.college{background:var(--blue)}
-        .marker-label.college-ox{background:var(--amber);color:white;border:2px solid #BF360C;font-size:10px}
-        .marker-arrow.college-ox{border-top:7px solid var(--amber)}
-        .marker-dot.college-ox{background:var(--amber)}
+        .marker-label.college{background:var(--violet);color:white;border:2px solid #5035e0;font-size:10px}
+        .marker-arrow.college{border-top:7px solid var(--violet)}
+        .marker-dot.college{background:var(--violet)}
         .marker-label.poi{background:#7B1FA2;color:white;border:2px solid #6A1B9A;font-size:10px}
         .marker-arrow.poi{border-top:7px solid #7B1FA2}
         .marker-dot.poi{background:#7B1FA2}
-        .marker-label.resto-cam{background:var(--blue);color:white;border:2px solid #0D47A1;font-size:10px}
-        .marker-arrow.resto-cam{border-top:7px solid var(--blue)}
-        .marker-dot.resto-cam{background:var(--blue)}
-        .marker-label.resto-ox{background:var(--amber);color:white;border:2px solid #BF360C;font-size:10px}
-        .marker-arrow.resto-ox{border-top:7px solid var(--amber)}
-        .marker-dot.resto-ox{background:var(--amber)}
-        .marker-label.pub{background:#4E342E;color:white;border:2px solid #3E2723;font-size:10px}
-        .marker-arrow.pub{border-top:7px solid #4E342E}
-        .marker-dot.pub{background:#4E342E}
+        .marker-label.pub{background:#E07B8B;color:white;border:2px solid #D4657A;font-size:10px}
+        .marker-arrow.pub{border-top:7px solid #E07B8B}
+        .marker-dot.pub{background:#E07B8B}
         .leaflet-popup-content{font-family:-apple-system,'Segoe UI',sans-serif;font-size:13px;line-height:1.5;min-width:200px}
         .leaflet-popup-content h3{margin:0 0 6px;font-size:15px}
         .leaflet-popup-content .tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:3px;margin:2px 2px 2px 0}
@@ -146,9 +137,9 @@
         .tag.t-resto{background:#FFEAE0;color:#C41D3E}.tag.t-resto.top{background:#C41D3E;color:white}
         .tag.t-sk{background:#E0F5EE;color:#0B7A5F}.tag.t-sk.top{background:#0B7A5F;color:white}
         .tag.t-gare{background:#333;color:white}
-        .tag.t-college{background:var(--blue-light);color:var(--blue)}
+        .tag.t-college{background:var(--violet-light);color:var(--violet)}
         .tag.t-poi{background:#F3E5F5;color:#7B1FA2}
-        .tag.t-pub{background:#EFEBE9;color:#4E342E}
+        .tag.t-pub{background:#FCE4EC;color:#C41D3E}
 
         /* Filter panel */
         .filter-toggle{position:absolute;top:50px;right:12px;z-index:1002;background:white;color:var(--violet);border:2px solid var(--violet);border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
@@ -171,6 +162,7 @@
         .filter-item input:checked+.filter-check.fc-blue{background:var(--blue);border-color:#0D47A1}
         .filter-item input:checked+.filter-check.fc-amber{background:var(--amber);border-color:#BF360C}
         .filter-item input:checked+.filter-check.fc-purple{background:#7B1FA2;border-color:#6A1B9A}
+        .filter-item input:checked+.filter-check.fc-rose{background:#E07B8B;border-color:#D4657A}
         .filter-item input:checked+.filter-check.fc-brown{background:#4E342E;border-color:#3E2723}
         .filter-label{font-weight:500;color:#333;font-size:13px;flex:1}
         .filter-label.main{font-weight:600;font-size:14px}
@@ -301,22 +293,22 @@ const londonGares=[
 
 // ===== DATA: CAMBRIDGE =====
 const cambridgeColleges=[
-    {name:"King's College Chapel",lat:52.2044,lng:0.1165,info:"Gothique perpendiculaire (1446), voutes en eventail, vitraux"},
-    {name:"Trinity College",lat:52.2073,lng:0.1179,info:"Le plus grand college, Great Court, bibliotheque Wren"},
-    {name:"St John's College",lat:52.2050,lng:0.1168,info:"Bridge of Sighs (1831), cours successives"},
-    {name:"Queens' College",lat:52.2014,lng:0.1147,info:"Mathematical Bridge (1749)"},
-    {name:"Gonville & Caius",lat:52.2059,lng:0.1179,info:"3 portes symboliques, Hawking y a enseigne"},
-    {name:"Clare College",lat:52.2030,lng:0.1091,info:"Jardins sur les Backs, plus ancien pont"},
-    {name:"Emmanuel College",lat:52.2022,lng:0.1210,info:"Chapelle Christopher Wren"},
-    {name:"Senate House",lat:52.2055,lng:0.1174,info:"Batiment ceremoniel (1722), style palladien"}
+    {name:"King's College Chapel",lat:52.2044,lng:0.1165,info:"Gothique perpendiculaire (1446), voutes en eventail, vitraux",desc:"Chef-d'oeuvre du gothique perpendiculaire (1446). La plus grande voute en eventail du monde et des vitraux exceptionnels. Le choeur de Noel y est mondialement celebre. Incontournable."},
+    {name:"Trinity College",lat:52.2073,lng:0.1179,info:"Le plus grand college, Great Court, bibliotheque Wren",desc:"Le plus prestigieux college de Cambridge, fonde par Henri VIII. Newton, Byron, 34 prix Nobel. Great Court immense et bibliotheque Wren aux boiseries magistrales."},
+    {name:"St John's College",lat:52.2050,lng:0.1168,info:"Bridge of Sighs (1831), cours successives",desc:"Celebre pour son Bridge of Sighs (1831), pont couvert neo-gothique enjambant la Cam. Succession de cours medievales tres photogeniques."},
+    {name:"Queens' College",lat:52.2014,lng:0.1147,info:"Mathematical Bridge (1749)",desc:"Le Mathematical Bridge (1749) est une curiosite : un pont en bois construit sans clous apparents, dont la legende dit qu'il tient par la seule geometrie."},
+    {name:"Gonville & Caius",lat:52.2059,lng:0.1179,info:"3 portes symboliques, Hawking y a enseigne",desc:"Trois portes symboliques (Humilite, Vertu, Honneur) marquent le parcours de l'etudiant. Stephen Hawking y a ete professeur pendant 30 ans."},
+    {name:"Clare College",lat:52.2030,lng:0.1091,info:"Jardins sur les Backs, plus ancien pont",desc:"Les jardins de Clare sur les Backs sont parmi les plus beaux de Cambridge. Le pont (1640) est le plus ancien sur la Cam, avec une boule a laquelle manque un quartier."},
+    {name:"Emmanuel College",lat:52.2022,lng:0.1210,info:"Chapelle Christopher Wren",desc:"Chapelle conçue par Christopher Wren avec un retable remarquable. Jardins paisibles avec un etang. Moins visite, donc plus calme."},
+    {name:"Senate House",lat:52.2055,lng:0.1174,info:"Batiment ceremoniel (1722), style palladien",desc:"Batiment ceremoniel palladien (1722) ou se tiennent les remises de diplomes. Facade elegante en pierre de Portland sur la place centrale."}
 ];
 const cambridgePois=[
-    {name:"The Backs",lat:52.2047,lng:0.1128,info:"Promenade le long des colleges"},
-    {name:"Fitzwilliam Museum",lat:52.1999,lng:0.1197,info:"Art et antiquites, gratuit"},
-    {name:"Punting (Scudamore's)",lat:52.2018,lng:0.1157,info:"Barques sur la Cam, 25-30 GBP/pers"},
-    {name:"Market Square",lat:52.2055,lng:0.1187,info:"Marche quotidien, artisanat"},
-    {name:"Round Church",lat:52.2084,lng:0.1190,info:"Eglise ronde medievale normande (1130)"},
-    {name:"Corpus Clock",lat:52.2037,lng:0.1183,info:"Horloge avec insecte mecanique en or (2008)"}
+    {name:"The Backs",lat:52.2047,lng:0.1128,info:"Promenade le long des colleges",desc:"Promenade mythique le long de la Cam avec vue sur les arriere-cours des colleges (King's, Clare, Trinity). Pelouses, saules pleureurs, ambiance bucolique unique."},
+    {name:"Fitzwilliam Museum",lat:52.1999,lng:0.1197,info:"Art et antiquites, gratuit",desc:"Musee d'art et d'antiquites de niveau national, entierement gratuit. Collections egyptiennes, peintures impressionnistes, ceramiques. Batiment neo-classique imposant."},
+    {name:"Punting (Scudamore's)",lat:52.2018,lng:0.1157,info:"Barques sur la Cam, 25-30 GBP/pers",desc:"Experience incontournable : naviguer en barque a fond plat sur la Cam en passant sous les ponts des colleges. Avec guide (45 min) ou en autonomie. 25-30 GBP/pers."},
+    {name:"Market Square",lat:52.2055,lng:0.1187,info:"Marche quotidien, artisanat",desc:"Marche en plein air quotidien depuis le Moyen Age. Produits locaux, artisanat, street food. Anime tous les jours, ideal pour un cafe en terrasse."},
+    {name:"Round Church",lat:52.2084,lng:0.1190,info:"Eglise ronde medievale normande (1130)",desc:"Une des 4 eglises rondes d'Angleterre (1130), inspiree du Saint-Sepulcre de Jerusalem. Architecture normande rare avec colonnes trapues et arcs en plein cintre."},
+    {name:"Corpus Clock",lat:52.2037,lng:0.1183,info:"Horloge avec insecte mecanique en or (2008)",desc:"Horloge hypnotisante (2008) : un sauterelle mecanique en or devore le temps seconde par seconde. Inauguree par Stephen Hawking. Gratuit, visible depuis la rue."}
 ];
 const cambridgeRestos=[
     {name:"Midsummer House",lat:52.2121,lng:0.1284,cuisine:"Gastronomique francaise",michelin:"2 etoiles Michelin",prix:"170-280 GBP",style:"r-star"},
@@ -332,23 +324,23 @@ const cambridgeGare={name:"Cambridge Station",lat:52.1942,lng:0.1375,dest:"Londr
 
 // ===== DATA: OXFORD =====
 const oxfordColleges=[
-    {name:"Christ Church",lat:51.7500,lng:-1.2554,info:"Great Hall (Harry Potter), cathedrale, Tom Quad"},
-    {name:"Bodleian Library",lat:51.7541,lng:-1.2540,info:"Divinity School (infirmerie Poudlard)"},
-    {name:"Radcliffe Camera",lat:51.7534,lng:-1.2540,info:"Rotonde neo-palladienne (1749), icone d'Oxford"},
-    {name:"All Souls College",lat:51.7533,lng:-1.2529,info:"Architecture gothique, twin towers"},
-    {name:"Magdalen College",lat:51.7522,lng:-1.2469,info:"Tour medievale, Deer Park, cloitre"},
-    {name:"New College",lat:51.7548,lng:-1.2528,info:"Cloitre Harry Potter (Coupe de Feu)"},
-    {name:"Sheldonian Theatre",lat:51.7543,lng:-1.2550,info:"Christopher Wren (1669), vue panoramique"},
-    {name:"Exeter College",lat:51.7537,lng:-1.2563,info:"Chapelle neo-gothique, Tolkien y etait etudiant"}
+    {name:"Christ Church",lat:51.7500,lng:-1.2554,info:"Great Hall (Harry Potter), cathedrale, Tom Quad",desc:"Le college le plus celebre : le Great Hall a inspire Poudlard dans Harry Potter. Cathedrale integree, Tom Quad monumental, Tom Tower de Wren. 13 premiers ministres y ont etudie."},
+    {name:"Bodleian Library",lat:51.7541,lng:-1.2540,info:"Divinity School (infirmerie Poudlard)",desc:"Deuxieme plus grande bibliotheque du UK (13 millions de volumes). La Divinity School gothique (1488) a servi d'infirmerie dans Harry Potter. Visites guidees recommandees."},
+    {name:"Radcliffe Camera",lat:51.7534,lng:-1.2540,info:"Rotonde neo-palladienne (1749), icone d'Oxford",desc:"Icone d'Oxford : rotonde neo-palladienne (1749) au coeur de la ville. L'un des batiments les plus photographies d'Angleterre. Fait partie de la Bodleian Library."},
+    {name:"All Souls College",lat:51.7533,lng:-1.2529,info:"Architecture gothique, twin towers",desc:"College d'elite reserve aux chercheurs (pas d'etudiants). Tours jumelles gothiques emblematiques. L'examen d'entree est repute le plus difficile du monde."},
+    {name:"Magdalen College",lat:51.7522,lng:-1.2469,info:"Tour medievale, Deer Park, cloitre",desc:"Tour medievale (1509) ou un choeur chante chaque 1er mai a l'aube. Deer Park avec des daims en liberte, cloitre paisible. Oscar Wilde y etait etudiant."},
+    {name:"New College",lat:51.7548,lng:-1.2528,info:"Cloitre Harry Potter (Coupe de Feu)",desc:"Cloitre medieval utilise comme decor dans Harry Potter (Coupe de Feu, scene ou Drago est transforme en fouine). Jardins clos et remparts medievaux."},
+    {name:"Sheldonian Theatre",lat:51.7543,lng:-1.2550,info:"Christopher Wren (1669), vue panoramique",desc:"Premier batiment de Christopher Wren (1669). Plafond peint allegorie de la Verite. Coupole accessible : vue panoramique 360 sur les clochers d'Oxford."},
+    {name:"Exeter College",lat:51.7537,lng:-1.2563,info:"Chapelle neo-gothique, Tolkien y etait etudiant",desc:"Chapelle neo-gothique inspiree de la Sainte-Chapelle de Paris. J.R.R. Tolkien y etait etudiant (1911-1915), il s'en est inspire pour ses descriptions."}
 ];
 const oxfordPois=[
-    {name:"Ashmolean Museum",lat:51.7556,lng:-1.2606,info:"Plus ancien musee public du monde, gratuit"},
-    {name:"Museum of Natural History",lat:51.7586,lng:-1.2557,info:"Neo-gothique victorien, dinosaures, gratuit"},
-    {name:"Pitt Rivers Museum",lat:51.7588,lng:-1.2551,info:"Collection ethnographique, gratuit"},
-    {name:"Covered Market",lat:51.7527,lng:-1.2567,info:"Marche couvert (1774), Ben's Cookies"},
-    {name:"Bridge of Sighs",lat:51.7545,lng:-1.2538,info:"Pont couvert iconique (1914)"},
-    {name:"Carfax Tower",lat:51.7519,lng:-1.2578,info:"Vue panoramique 360"},
-    {name:"Botanic Garden",lat:51.7510,lng:-1.2477,info:"Plus ancien jardin botanique UK (1621)"}
+    {name:"Ashmolean Museum",lat:51.7556,lng:-1.2606,info:"Plus ancien musee public du monde, gratuit",desc:"Plus ancien musee public du monde (1683). Collections remarquables : Raphael, Michel-Ange, momies egyptiennes, Alfred Jewel anglo-saxon. Gratuit. Cafe en terrasse au dernier etage."},
+    {name:"Museum of Natural History",lat:51.7586,lng:-1.2557,info:"Neo-gothique victorien, dinosaures, gratuit",desc:"Batiment neo-gothique victorien spectaculaire avec squelettes de dinosaures, dodo reconstitue, collection de mineraux. C'est ici qu'eut lieu le celebre debat Darwin/Huxley (1860). Gratuit."},
+    {name:"Pitt Rivers Museum",lat:51.7588,lng:-1.2551,info:"Collection ethnographique, gratuit",desc:"Musee ethnographique fascinant accessible depuis le Museum of Natural History. Tetes reduites, totems, masques du monde entier. Presentation a l'ancienne, cabinets de curiosites. Gratuit."},
+    {name:"Covered Market",lat:51.7527,lng:-1.2567,info:"Marche couvert (1774), Ben's Cookies",desc:"Marche couvert historique (1774) au coeur de la ville. Bouchers, fromagers, fleuristes, et les celebres Ben's Cookies. Ambiance authentique, ideal pour un dejeuner rapide."},
+    {name:"Bridge of Sighs",lat:51.7545,lng:-1.2538,info:"Pont couvert iconique (1914)",desc:"Pont couvert neo-palladien (1914) reliant deux batiments de Hertford College. Inspire du pont des Soupirs de Venise. L'un des points photo les plus populaires d'Oxford."},
+    {name:"Carfax Tower",lat:51.7519,lng:-1.2578,info:"Vue panoramique 360",desc:"Tour medievale (14e siecle) au carrefour central d'Oxford. 99 marches pour une vue panoramique 360 sur tous les clochers de la ville. Repere geographique ideal."},
+    {name:"Botanic Garden",lat:51.7510,lng:-1.2477,info:"Plus ancien jardin botanique UK (1621)",desc:"Plus ancien jardin botanique du Royaume-Uni (1621). Serres tropicales, jardin de plantes medicinales, roseraie. Le banc de Pullman (His Dark Materials) s'y trouve."}
 ];
 const oxfordRestos=[
     {name:"Pompette",lat:51.7722,lng:-1.2634,cuisine:"Francaise bourgeoise",michelin:"Michelin Selected",prix:"50-70 GBP",style:"r-star"},
@@ -363,9 +355,9 @@ const oxfordRestos=[
     {name:"Chiang Mai Kitchen",lat:51.7525,lng:-1.2520,cuisine:"Thai, Tudor classe",michelin:"Hardens 5/5",prix:"30-40 GBP",style:"r-rec"}
 ];
 const oxfordPubs=[
-    {name:"The Eagle and Child",lat:51.7572,lng:-1.2603,info:"Inklings (Tolkien, C.S. Lewis), Rabbit Room"},
-    {name:"The Turf Tavern",lat:51.7547,lng:-1.2530,info:"Pub du 14e siecle, ruelle medievale"},
-    {name:"Lamb and Flag",lat:51.7574,lng:-1.2593,info:"Depuis 1566, St John's College, Inklings post-1962"}
+    {name:"The Eagle and Child",lat:51.7572,lng:-1.2603,info:"Inklings (Tolkien, C.S. Lewis), Rabbit Room",desc:"Pub legendaire ou Tolkien et C.S. Lewis se retrouvaient chaque mardi avec les Inklings dans le Rabbit Room. C'est ici que furent lus les premiers chapitres du Seigneur des Anneaux."},
+    {name:"The Turf Tavern",lat:51.7547,lng:-1.2530,info:"Pub du 14e siecle, ruelle medievale",desc:"Pub cache du 14e siecle au bout d'une ruelle medievale. Bill Clinton y a bu sa premiere biere. Terrasse entre les remparts medievaux. Ambiance authentique garantie."},
+    {name:"Lamb and Flag",lat:51.7574,lng:-1.2593,info:"Depuis 1566, St John's College, Inklings post-1962",desc:"Le plus ancien pub d'Oxford (1566), propriete de St John's College. Les Inklings s'y sont deplaces apres 1962. Poutres apparentes, atmosphere intime et historique."}
 ];
 const oxfordGare={name:"Oxford Station",lat:51.7535,lng:-1.2702,dest:"Londres Paddington",duree:"45 min",compagnie:"GWR"};
 
@@ -561,9 +553,9 @@ function renderCambridgeMap(){
     mapLayers.pois=L.layerGroup().addTo(map);
     mapLayers.restos=L.layerGroup().addTo(map);
     mapLayers.gare=L.layerGroup().addTo(map);
-    cambridgeColleges.forEach(c=>createMarker(c.lat,c.lng,c.name,'college',`<h3 style="color:#1565C0">${c.name}</h3><span class="tag t-college">College</span><p>${c.info}</p>`,1000).addTo(mapLayers.colleges));
-    cambridgePois.forEach(p=>createMarker(p.lat,p.lng,p.name,'poi',`<h3 style="color:#7B1FA2">${p.name}</h3><span class="tag t-poi">Lieu d'interet</span><p>${p.info}</p>`,800).addTo(mapLayers.pois));
-    cambridgeRestos.forEach(r=>createMarker(r.lat,r.lng,r.name,'resto-cam',`<h3 style="color:#1565C0">${r.name}</h3><span class="tag t-resto top">${r.michelin}</span><p>${r.cuisine} | ${r.prix}</p>`,500).addTo(mapLayers.restos));
+    cambridgeColleges.forEach(c=>createMarker(c.lat,c.lng,c.name,'college',`<h3 style="color:#6749FF">${c.name}</h3><span class="tag t-college">College</span><p>${c.desc}</p>`,1000).addTo(mapLayers.colleges));
+    cambridgePois.forEach(p=>createMarker(p.lat,p.lng,p.name,'poi',`<h3 style="color:#7B1FA2">${p.name}</h3><span class="tag t-poi">Lieu d'interet</span><p>${p.desc}</p>`,800).addTo(mapLayers.pois));
+    cambridgeRestos.forEach(r=>createMarker(r.lat,r.lng,r.name,r.style,`<h3 style="color:#C41D3E">${r.name}</h3><span class="tag t-resto top">${r.michelin}</span><p>${r.cuisine} | ${r.prix}</p>`,500).addTo(mapLayers.restos));
     const g=cambridgeGare;
     const lbl=`<span class="train-icon">\u{1F686}</span>${g.name}`;
     const html=`<div class="marker-container"><div class="marker-label gare">${lbl}</div><div class="marker-arrow gare"></div><div class="marker-dot gare"></div></div>`;
@@ -578,10 +570,10 @@ function renderOxfordMap(){
     mapLayers.restos=L.layerGroup().addTo(map);
     mapLayers.pubs=L.layerGroup().addTo(map);
     mapLayers.gare=L.layerGroup().addTo(map);
-    oxfordColleges.forEach(c=>createMarker(c.lat,c.lng,c.name,'college-ox',`<h3 style="color:#E65100">${c.name}</h3><span class="tag t-college">College</span><p>${c.info}</p>`,1000).addTo(mapLayers.colleges));
-    oxfordPois.forEach(p=>createMarker(p.lat,p.lng,p.name,'poi',`<h3 style="color:#7B1FA2">${p.name}</h3><span class="tag t-poi">Lieu d'interet</span><p>${p.info}</p>`,800).addTo(mapLayers.pois));
-    oxfordRestos.forEach(r=>createMarker(r.lat,r.lng,r.name,'resto-ox',`<h3 style="color:#E65100">${r.name}</h3><span class="tag t-resto top">${r.michelin}</span><p>${r.cuisine} | ${r.prix}</p>`,500).addTo(mapLayers.restos));
-    oxfordPubs.forEach(p=>createMarker(p.lat,p.lng,p.name,'pub',`<h3 style="color:#4E342E">${p.name}</h3><span class="tag t-pub">Pub historique</span><p>${p.info}</p>`,600).addTo(mapLayers.pubs));
+    oxfordColleges.forEach(c=>createMarker(c.lat,c.lng,c.name,'college',`<h3 style="color:#6749FF">${c.name}</h3><span class="tag t-college">College</span><p>${c.desc}</p>`,1000).addTo(mapLayers.colleges));
+    oxfordPois.forEach(p=>createMarker(p.lat,p.lng,p.name,'poi',`<h3 style="color:#7B1FA2">${p.name}</h3><span class="tag t-poi">Lieu d'interet</span><p>${p.desc}</p>`,800).addTo(mapLayers.pois));
+    oxfordRestos.forEach(r=>createMarker(r.lat,r.lng,r.name,r.style,`<h3 style="color:#C41D3E">${r.name}</h3><span class="tag t-resto top">${r.michelin}</span><p>${r.cuisine} | ${r.prix}</p>`,500).addTo(mapLayers.restos));
+    oxfordPubs.forEach(p=>createMarker(p.lat,p.lng,p.name,'pub',`<h3 style="color:#C41D3E">${p.name}</h3><span class="tag t-pub">Pub historique</span><p>${p.desc}</p>`,600).addTo(mapLayers.pubs));
     const g=oxfordGare;
     const lbl=`<span class="train-icon">\u{1F686}</span>${g.name}`;
     const html=`<div class="marker-container"><div class="marker-label gare">${lbl}</div><div class="marker-arrow gare"></div><div class="marker-dot gare"></div></div>`;
@@ -600,15 +592,15 @@ function renderFilterPanel(){
         html+=filterSection('Restaurants South Ken','fc-green','restosSK',londonRestosSK.length,'#0B7A5F');
         html+=filterSection('Gares','fc-black','gares',londonGares.length,'#1A1A1A');
     } else if(currentMapCity==='cambridge'){
-        html+=filterSection('Colleges','fc-blue','colleges',cambridgeColleges.length,'#1565C0');
+        html+=filterSection('Colleges','fc-violet','colleges',cambridgeColleges.length,'#6749FF');
         html+=filterSection('Lieux d\'interet','fc-purple','pois',cambridgePois.length,'#7B1FA2');
-        html+=filterSection('Restaurants','fc-blue','restos',cambridgeRestos.length,'#1565C0');
+        html+=filterSection('Restaurants','fc-red','restos',cambridgeRestos.length,'#C41D3E');
         html+=filterSection('Gare','fc-black','gare',1,'#1A1A1A');
     } else {
-        html+=filterSection('Colleges','fc-amber','colleges',oxfordColleges.length,'#E65100');
+        html+=filterSection('Colleges','fc-violet','colleges',oxfordColleges.length,'#6749FF');
         html+=filterSection('Lieux d\'interet','fc-purple','pois',oxfordPois.length,'#7B1FA2');
-        html+=filterSection('Restaurants','fc-amber','restos',oxfordRestos.length,'#E65100');
-        html+=filterSection('Pubs historiques','fc-brown','pubs',oxfordPubs.length,'#4E342E');
+        html+=filterSection('Restaurants','fc-red','restos',oxfordRestos.length,'#C41D3E');
+        html+=filterSection('Pubs historiques','fc-rose','pubs',oxfordPubs.length,'#E07B8B');
         html+=filterSection('Gare','fc-black','gare',1,'#1A1A1A');
     }
     html+='</div>';
