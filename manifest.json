@@ -1,7 +1,7 @@
 {
-  "name": "Londres Avril 2026",
-  "short_name": "Londres",
-  "description": "Carte interactive - Hotels, Restaurants & Gares",
+  "name": "Londres Cambridge Oxford 2026",
+  "short_name": "Voyage 2026",
+  "description": "App voyage - Londres, Cambridge, Oxford - Avril 2026",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'londres-2026-v1';
+const CACHE_NAME = 'londres-2026-v2';
 
 // Ressources essentielles a cacher immediatement
 const CORE_ASSETS = [
